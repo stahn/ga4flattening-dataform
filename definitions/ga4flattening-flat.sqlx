@@ -69,4 +69,4 @@ select
     -- traffic_source.source (dimension | name of the network that first acquired the user)
     traffic_source.source
 from ${ref("ga4flattening-source")}
-${when(incremental(), `WHERE timestamp > (SELECT MAX(event_timestamp) FROM ${self()})`) }
+${when(incremental(), `WHERE event_timestamp > (SELECT MAX(event_timestamp) FROM ${self()})`) }
