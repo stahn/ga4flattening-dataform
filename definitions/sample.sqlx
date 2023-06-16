@@ -9,6 +9,7 @@ config {
   columns: {
     test: "A description for the test column", // Column descriptions are pushed to BigQuery.
   },
+  tags: ["A"],
   assertions: {
     nonNull: "test", // Assertions allow you to run checks against your data.
   }
