@@ -70,5 +70,5 @@ select
     traffic_source.source,
     platform,
     engagement_time_msec
-from ${ref("ga4flattening-source")}
+from ${ref("source")}
 ${when(incremental(), `WHERE TIMESTAMP_MICROS(event_timestamp) > (SELECT MAX(timestamp(event_timestamp)) FROM ${self()})`) }
