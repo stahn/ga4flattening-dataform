@@ -67,6 +67,8 @@ select
     -- traffic_source.medium (dimension | name of the medium (paid search, organic search, email, etc.) that first acquired the user)
     traffic_source.medium,
     -- traffic_source.source (dimension | name of the network that first acquired the user)
-    traffic_source.source
+    traffic_source.source,
+    platform,
+    engagement_time_msec
 from ${ref("ga4flattening-source")}
 ${when(incremental(), `WHERE TIMESTAMP_MICROS(event_timestamp) > (SELECT MAX(timestamp(event_timestamp)) FROM ${self()})`) }
