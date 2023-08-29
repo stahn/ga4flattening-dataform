@@ -1,0 +1,72 @@
+config {
+    type: "incremental",
+    description:"fattened GA4 table",
+    assertions: {
+        nonNull: ["user_pseudo_id"],
+        rowConditions: [
+            'user_pseudo_id like "%.%"'
+        ]
+    }
+}
+select
+    -- user_id (dimension | the user id set via the setUserId api)
+    user_id,
+    -- user_pseudo_id (dimension | the pseudonymous id (e.g., app instance id) for the user)
+    user_pseudo_id,
+    -- user_first_touch_timestamp (dimension | the time (in microseconds) at which the user first opened the app/website)
+    timestamp_micros(user_first_touch_timestamp) as user_first_touch_timestamp,
+    parse_date('%Y%m%d',event_date) as event_date,
+    -- event_timestamp (dimension | the time (in microseconds, utc) at which
+    -- the event was logged on the client)
+    timestamp_micros(event_timestamp) as event_timestamp,
+    -- event_name (dimension | the name of the event)
+    event_name,
+    -- event_key (dimension | the event parameter's key | change key to select another parameter)
+    -- (select key from unnest(event_params) where key = 'page_location') as event_key,
+    -- event_string_value (dimension | the string value of the event parameter | change key to select another parameter)
+    (select value.string_value from unnest(event_params) where key = 'page_location') as page_location,
+    (select value.string_value from unnest(event_params) where key = 'page_referrer') as page_referrer,
+    (select value.string_value from unnest(event_params) where key = 'gclid') as gclid,
+    (select value.string_value from unnest(event_params) where key = 'term') as term,
+    (select value.string_value from unnest(event_params) where key = 'campaign') as utm_campaign,
+    (select value.string_value from unnest(event_params) where key = 'medium') as utm_medium,
+    (select value.string_value from unnest(event_params) where key = 'source') as utm_source,
+    (select value.string_value from unnest(event_params) where key = 'content') as utm_content,
+    (select value.string_value from unnest(event_params) where key = 'page_title') as page_title,
+    -- event_int_value (metric | the integer value of the event parameter | change key to select another parameter)
+    (select value.int_value from unnest(event_params) where key = 'ga_session_id') as ga_session_id,
+    -- event_float_value (metric | the float value of the event parameter | change key to select another parameter)
+    (select value.float_value from unnest(event_params) where key = 'page_location') as event_float_value,
+    -- event_double_value (metric | the double value of the event parameter | change key to select another parameter)
+    (select value.double_value from unnest(event_params) where key = 'page_location') as event_double_value,
+    -- event_previous_timestamp (dimension | the time (in microseconds, utc) at which
+    -- the event was previously logged on the client)
+    timestamp_micros(event_previous_timestamp) as event_previous_timestamp,
+    -- event_value_in_usd (metric | the currency-converted value (in usd) of the event's "value" parameter)
+    event_value_in_usd,
+    -- event_bundle_sequence_id (dimension | the sequential id of the bundle in which these events were uploaded)
+    event_bundle_sequence_id,
+    -- event_server_timestamp_offset (dimension | timestamp offset between collection time and upload time in micros)
+    event_server_timestamp_offset,
+    -- event_dimensions.hostname (dimension | hostname)
+    event_dimensions.hostname,
+    -- geo.continent (dimension | the continent from which events were reported, based on ip address)
+    geo.continent,
+    -- geo.sub_continent (dimension | the subcontinent from which events were reported, based on ip address)
+    geo.sub_continent,
+    -- geo.country (dimension | the country from which events were reported, based on ip address)
+    geo.country,
+     -- geo.region (dimension | the region from which events were reported, based on ip address)
+    geo.region,
+    -- geo.city (dimension | the city from which events were reported, based on ip address)
+    geo.city,
+    -- geo.metro (dimension | the metro from which events were reported, based on ip address)
+     geo.metro,
+    -- traffic_source.name (dimension | name of the marketing campaign that first acquired the user)
+    traffic_source.name,
+    -- traffic_source.medium (dimension | name of the medium (paid search, organic search, email, etc.) that first acquired the user)
+    traffic_source.medium,
+    -- traffic_source.source (dimension | name of the network that first acquired the user)
+    traffic_source.source
+from ${ref("ga4flattening-source")}
+${when(incremental(), `WHERE TIMESTAMP_MICROS(event_timestamp) > (SELECT MAX(timestamp(event_timestamp)) FROM ${self()})`) }

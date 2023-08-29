@@ -2,7 +2,12 @@
   "defaultSchema": "dataform",
   "assertionSchema": "dataform_assertions",
   "warehouse": "bigquery",
+<<<<<<< HEAD
   "defaultDatabase": "upskill-demo-397422",
   "defaultLocation": "EU"
+=======
+  "defaultDatabase": "general-ce",
+  "defaultLocation": "US"
+>>>>>>> refs/heads/main
 }
     
