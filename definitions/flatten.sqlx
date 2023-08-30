@@ -35,6 +35,7 @@ select
     (select value.string_value from unnest(event_params) where key = 'page_title') as page_title,
     -- event_int_value (metric | the integer value of the event parameter | change key to select another parameter)
     (select value.int_value from unnest(event_params) where key = 'ga_session_id') as ga_session_id,
+    (select value.int_value from unnest(event_params) where key = 'engagement_time_msec') as engagement_time_msec,
     -- event_float_value (metric | the float value of the event parameter | change key to select another parameter)
     (select value.float_value from unnest(event_params) where key = 'page_location') as event_float_value,
     -- event_double_value (metric | the double value of the event parameter | change key to select another parameter)
@@ -68,7 +69,6 @@ select
     traffic_source.medium,
     -- traffic_source.source (dimension | name of the network that first acquired the user)
     traffic_source.source,
-    platform,
-    engagement_time_msec
+    platform
 from ${ref("source")}
 ${when(incremental(), `WHERE TIMESTAMP_MICROS(event_timestamp) > (SELECT MAX(timestamp(event_timestamp)) FROM ${self()})`) }
